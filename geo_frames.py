@@ -86,12 +86,12 @@ class Transformacje:
         print('x = ', X)
         print('y = ', Y)
         print('z = ', Z)
+        return X, Y, Z
     
-    def neu(self, fi,lam,h,X_sr,Y_sr,Z_sr):
+    def neu(self, fi, lam, h, X_sr, Y_sr, Z_sr):
             
             '''
-            Funkcja liczy współrzędne wektora NEU i zwraca je w postaci NEU lub ENU 
-            - użytkownik ma wybór
+            Funkcja liczy współrzędne wektora NEU i zwraca je w postaci NEU.
     
            INPUT:
                X    :[float] : współrzędna X punktu 
