@@ -29,27 +29,20 @@ class Transformacje:
         self.ecc2 = (2 * self.flat - self.flat ** 2) # eccentricity**2
 
 def xyz2plh(self, X, Y, Z, output = 'dec_degree'):
-    
     """
-    Algorytm Hirvonena - algorytm transformacji współrzędnych ortokartezjańskich (x, y, z)
-    na współrzędne geodezyjne długość szerokość i wysokośc elipsoidalna (phi, lam, h). Jest to proces iteracyjny. 
-    W wyniku 3-4-krotneej iteracji wyznaczenia wsp. phi można przeliczyć współrzędne z dokładnoscią ok 1 cm.     
-    Parameters
-    ----------
-    X, Y, Z : FLOAT
-         współrzędne w układzie orto-kartezjańskim, 
+    Algorytm Hirvonena - algorytm służący do transformacji współrzędnych ortokartezjańskich (prostokątnych) x, y, z 
+    na współrzędne geodezyjne phi, lam, h.
+ 
+    INPUT:
+        X : [float] - współrzędna geocentryczna (ortokartezjański)
+        Y : [float] - współrzędna geocentryczna (ortokartezjański)
+        Z : [float] - współrzędna geocentryczna (ortokartezjański)
+        
+    OUTPUT:
+        fi  :[float] : szerokość geodezyjna (radiany)
+        lam :[float] : długość geodezyjna (radiany)
+        h   :[float] : wysokość elipsoidalna (metry)
 
-    Returns
-    -------
-    lat
-        [stopnie dziesiętne] - szerokość geodezyjna
-    lon
-        [stopnie dziesiętne] - długośc geodezyjna.
-    h : TYPE
-        [metry] - wysokość elipsoidalna
-    output [STR] - optional, defoulf 
-        dec_degree - decimal degree
-        dms - degree, minutes, sec
     """
     r   = sqrt(X**2 + Y**2)           # promień
     lat_prev = atan(Z / (r * (1 - self.ecc2)))    # pierwsze przybliilizenie
@@ -73,11 +66,26 @@ def xyz2plh(self, X, Y, Z, output = 'dec_degree'):
         
     
 def plh2xyz(self, fi, lam, h):
+    '''
+    Funkcja przeliczająca współrzędne geodezyjna na ortokartezjańskie.
+    INPUT:
+        fi  :[float] : szerokość geodezyjna (radiany)
+        lam :[float] : długość geodezyjna (radiany)
+        h   :[float] : wysokość elipsoidalna (metry)
+          
+    OUTPUT:
+        X : [float] - współrzędna geocentryczna (ortokartezjański)
+        Y : [float] - współrzędna geocentryczna (ortokartezjański)
+        Z : [float] - współrzędna geocentryczna (ortokartezjański)
+
+    '''
     N = self.a/(1-self.ecc2*(sin(fi))**2)**(0.5)
     X = (N + h)*cos(fi) * cos(lam)
     Y = (N + h)*cos(fi) * sin(lam)
     Z = (N * (1 - self.ecc2) + h) * sin(fi)
-    print(X, Y, Z)
+    print('x = ', X)
+    print('y = ', Y)
+    print('z = ', Z)
 
 def neu(self, fi,lam,h,X_sr,Y_sr,Z_sr):
         
@@ -113,6 +121,7 @@ def neu(self, fi,lam,h,X_sr,Y_sr,Z_sr):
         d = np.matrix([delta_X, delta_Y, delta_Z])
         d = d.T
         neu = Rt * d
+        print('wektor neu = ', neu)
         return(neu)
     
 def sigma(self, f):
@@ -160,6 +169,8 @@ def fl2xygk(self, fi ,lam , L0):
     xgk = si + (dL**2/2)*N*sin(fi)*cos(fi)*(1 + (dL**2/12)*cos(fi)**2*(5 - t**2 + 9*n2 + 4*n2**2) + (dL**4/360)*cos(fi)**4*(61 - 58*t**2 + t**4 + 14*n2 - 58*n2*t**2))
     ygk = dL*N*cos(fi)*(1 + (dL**2/6)*cos(fi)**2*(1 - t**2 + n2) + (dL**4/120)*cos(fi)**4*(5 - 18*t**2 + t**4 + 14*n2 - 58*n2*t**2))
     
+    print('xgk = ', xgk)
+    print('ygk = ', ygk)
     return(xgk,ygk)
 
 def uklad2000(self, fi ,lam):
@@ -185,6 +196,8 @@ def uklad2000(self, fi ,lam):
     x00 = xgk * m2000;
     y00 = ygk * m2000 + L0/3* 1000000 + 500000;   
     
+    print('x00 = ', x00)
+    print('y00 = ', y00)
     return(x00,y00)
 
 def uklad1992(self, fi, lam):
@@ -209,10 +222,27 @@ def uklad1992(self, fi, lam):
     x92 = xgk * m1992 - 5300000;
     y92 = ygk * m1992 + 500000;   
     
+    print('x92 = ', x92)
+    print('y92 = ', y92)
     return(x92,y92)
 
 
-def vincent(self, lama, lamb,fia,fib) :
+def vincent(self, fia,fib,lama, lamb) :
+    '''
+    Algorytm liczący długosć i azymut lini geodezyjnej.
+    
+    INPUT:
+        fia   :[float] : szerokość geodezyjna pkt A(radiany)
+        lama  :[float] : długość geodezyjna pkt A(radiany)
+        fib   :[float] : szerokość geodezyjna pkt B(radiany)
+        lamb  :[float] : długość geodezyjna pkt B(radiany)
+        
+    OUTPUT:
+        Az_AB :[float] : azymut linii geodezyjnej(radiany)
+        Az_BA :[float] : azymut odwrotny linii geodezyjnej(radiany)
+        s     :[float] : długoć linii geodezyjnej(metry)
+        
+    '''  
     LAMB=np.deg2rad(lamb)
     FIB=np.deg2rad(fib)
     FIA = np.deg2rad(fia)
@@ -245,20 +275,66 @@ def vincent(self, lama, lamb,fia,fib) :
     s=b*A*(sigma-dsigma)
     Az_AB=atan(((cos(UB))*(sin(L)))/(((cos(UA))*(sin(UB)))-((sin(UA))*(cos(UB))*(cos(L)))))
     Az_BA=atan(((cos(UA))*(sin(L)))/(((-sin(UA))*(cos(UB)))+((cos(UA))*(sin(UB))*(cos(L))))) + pi
-
+    print('Azymut = ', Az_AB)
+    print('Azymut odwrotny = ', Az_BA)
+    print('Odległosć = ', s)
+    
+    
     return Az_AB,Az_BA,s
 
 def s3d(self, xa, xb, ya, yb, za, zb):
+    '''
+    Algorytm liczący odległosć 3D
+    
+    INPUT:
+        xa   :[float] : współrzędna X ptk A(metry)
+        xb   :[float] : współrzędna X ptk B(metry)
+        ya   :[float] : współrzędna Y ptk A(metry)
+        yb   :[float] : współrzędna Y ptk B(metry)
+        za   :[float] : współrzędna Z ptk A(metry)
+        zb   :[float] : współrzędna Z ptk B(metry)
+        
+    OUTPUT:
+        s    :[float] : odległosć 3D pomiędzy punktami A i B(metry)
+        
+    '''
     s = ((xb-xa)**2 + (yb-ya)**2 + (zb-za)**2)**(1/3)
     return s
 
 def st2sms(alfa):
+    '''
+    Algorytm przeliczający kąt podany w ułamku dziesiętnym w stopniach
+    na format Xst Ymin Zsek.
+    
+    INPUT:
+        alfa   :[float] : kąt w ułamku dziesiętnym
+        
+    OUTPUT:
+        sms    :[list] : kąt w stopniach, minutach, sekundach
+    
+    '''
     a1m = (alfa-floor(alfa))*60
     a1s = (a1m - floor(a1m))*60
     sms = [floor(alfa), floor(a1m), round(a1s,3)]
     return sms
 
 def az_el(self, fia, lama, ha, fib, lamb, hb):
+    '''
+    Algorytm liczący Azymut i Kąt elewacji pomiędzy dwoma punktami. 
+    
+    INPUT:
+        fia    :[float] : szerokość geodezyjna pkt A(radiany)
+        lama   :[float] : długość geodezyjna pkt A(radiany)
+        ha     :[float] : wysokoć punktu A(metry)
+        fib    :[float] : szerokość geodezyjna pkt B(radiany)
+        lamb   :[float] : długość geodezyjna pkt B(radiany)
+        hb     :[float] : wysokosć punktu B(metry)
+        
+    OUTPUT:
+        azymut :[float] : azymut prostej zawartej pomiędzy dwoma punktami(stopnie)
+        E      :[float] : kąt elewacji(stopnie)
+        
+    '''
     Na = self.a/(sqrt(1-self.ecc2*(sin(fia)**2)))
     Nb = self.a/(sqrt(1-self.ecc2*(sin(fib)**2)))
 
