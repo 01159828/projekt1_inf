@@ -378,14 +378,5 @@ class Transformacje:
         print('Kąt elewacji = ', E)
     
         return azymut, E
-    
-        if __name__ == "__main__":
-            # utworzenie obiektu
-            geo = Transformacje(model = "wgs84")
-            # dane XYZ geocentryczne
-            X = 3664940.500; Y = 1409153.590; Z = 5009571.170
-            phi, lam, h = geo.xyz2plh(X, Y, Z)
-            print(phi, lam, h)
-            phi, lam, h = geo.xyz2plh2(X, Y, Z)
-            print(phi, lam, h)
+
  
